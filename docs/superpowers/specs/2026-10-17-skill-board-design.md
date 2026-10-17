@@ -12,7 +12,7 @@
 
 ## 2. 是什么
 
-一个只在本机使用的 Mac 桌面应用。外壳用 Electron，界面就是一个网页。打开后显示本机所有 skill 的使用排行榜。
+一个只在本机使用的 Mac 桌面应用。外壳最初用 Electron，v0.2 起改为 Tauri 2（安装包从约 130MB 降到约 3MB），界面就是一个网页。打开后显示本机所有 skill 的使用排行榜。
 
 ### 目标
 - 列出本机所有工具里实际装着的 skill，包括全局和项目级，并且去重。
@@ -133,9 +133,8 @@ opencode、Cursor、Gemini：由开发者自行调查有没有可用的本地会
 
 ## 7. 技术约束
 
-- Electron。依赖装在项目本地的 `node_modules`，不做全局安装（用户的全局规定）。
-- 主进程（Node）负责扫描文件、解析日志、调用 DeepSeek、读写缓存；页面通过 preload 暴露的接口获取数据。
-- 缓存文件放在 Electron 的 `userData` 目录。
+- Tauri 2：界面是 `renderer/` 下的静态网页，后台（扫描、统计、翻译、存储）用 Rust 写在 `src-tauri/`。Tauri CLI 装在项目本地 `node_modules`，不做全局安装（用户的全局规定）。
+- 缓存文件放在应用数据目录；API Key 放在 macOS 钥匙串。
 - 最终产出一个能双击打开的 `.app`。只给自己用，不需要签名、公证和自动更新。
 
 ## 8. 交给开发者自行决定的部分
@@ -143,7 +142,6 @@ opencode、Cursor、Gemini：由开发者自行调查有没有可用的本地会
 - 缓存的格式（JSON 或 SQLite）。
 - DeepSeek 每批处理多少条、并发数多少、提示词怎么写。
 - 其他工具使用记录的具体解析方式（见 4.3）。
-- 打包工具（electron-builder 或 electron-forge）。
 
 ## 9. 由我（Claude）做的决定，供用户核对
 - 同一会话内多次读取同一个 skill 只算 1 次。

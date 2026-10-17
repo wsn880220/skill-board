@@ -1,3 +1,18 @@
+// 后台接口（Tauri）
+const { invoke } = window.__TAURI__.core;
+const { listen } = window.__TAURI__.event;
+const api = {
+  getView: () => invoke('get_view'),
+  getStatus: () => invoke('get_status'),
+  rescan: () => invoke('rescan'),
+  getSettings: () => invoke('get_settings'),
+  saveSettings: s => invoke('save_settings', { s }),
+  regenerate: id => invoke('regenerate', { id }),
+  saveSkill: ({ id, zh, category }) => invoke('save_skill', { id, zh, category }),
+  onView: fn => listen('view', e => fn(e.payload)),
+  onStatus: fn => listen('status', e => fn(e.payload)),
+};
+
 const SOURCE_LABEL = { user: '自己装的', plugin: '插件带的', builtin: '工具自带', project: '项目级' };
 
 const state = { view: { rows: [], categories: [], hasKey: false }, cat: '全部', order: 'desc', q: '', status: { phase: 'idle' } };
@@ -81,7 +96,7 @@ function render() {
 }
 
 async function openSettings() {
-  const s = await window.api.getSettings();
+  const s = await api.getSettings();
   $('#s-key').value = '';
   $('#s-key').placeholder = s.hasKey ? '已保存（留空则不修改）' : 'sk-…';
   $('#s-base').value = s.baseUrl;
@@ -94,7 +109,7 @@ async function openSettings() {
 $('#settings').addEventListener('close', () => {
   if ($('#settings').returnValue !== 'save') return;
   const key = $('#s-key').value.trim();
-  window.api.saveSettings({
+  api.saveSettings({
     baseUrl: $('#s-base').value.trim(),
     model: $('#s-model').value.trim(),
     apiKey: key ? key : undefined,
@@ -129,18 +144,18 @@ $('#e-regen').addEventListener('click', async () => {
   btn.disabled = true;
   $('#e-msg').textContent = '正在生成…';
   try {
-    const r = await window.api.regenerate(editing);
+    const r = await api.regenerate(editing);
     $('#e-zh').value = r.zh;
     $('#e-cat').value = r.category;
     $('#e-msg').textContent = '已生成，确认后点保存。';
   } catch (err) {
-    $('#e-msg').textContent = '生成失败：' + String(err.message || err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+    $('#e-msg').textContent = '生成失败：' + String(err.message || err);
   }
   btn.disabled = false;
 });
 $('#edit').addEventListener('close', () => {
   if ($('#edit').returnValue !== 'save' || !editing) return;
-  window.api.saveSkill({ id: editing, zh: $('#e-zh').value, category: $('#e-cat').value });
+  api.saveSkill({ id: editing, zh: $('#e-zh').value, category: $('#e-cat').value });
 });
 
 $('#cats').addEventListener('click', e => {
@@ -157,8 +172,11 @@ $('#order').addEventListener('click', e => {
   render();
 });
 $('#q').addEventListener('input', e => { state.q = e.target.value.trim(); render(); });
-$('#rescan').addEventListener('click', () => window.api.rescan());
+$('#rescan').addEventListener('click', () => api.rescan());
 $('#open-settings').addEventListener('click', openSettings);
 
-window.api.onView(v => { state.view = v; render(); });
-window.api.onStatus(s => { state.status = s; renderFoot(); });
+api.onView(v => { state.view = v; render(); });
+api.onStatus(s => { state.status = s; renderFoot(); });
+// 页面加载前后台可能已经推送过，主动取一次
+api.getView().then(v => { state.view = v; render(); });
+api.getStatus().then(s => { state.status = s; renderFoot(); });

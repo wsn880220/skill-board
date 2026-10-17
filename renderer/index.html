@@ -9,13 +9,13 @@
 <body>
   <div class="app">
     <aside class="side">
-      <div class="drag side-top"></div>
+      <div class="side-top" data-tauri-drag-region></div>
       <div class="brand">Skill Board</div>
       <nav id="cats"></nav>
       <div class="side-foot" id="foot"></div>
     </aside>
     <main class="main">
-      <header class="bar drag">
+      <header class="bar" data-tauri-drag-region>
         <div class="search no-drag">
           <svg viewBox="0 0 20 20" width="14" height="14"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           <input id="q" type="search" placeholder="搜索名称或描述…" autocomplete="off">
