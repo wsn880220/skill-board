@@ -7,23 +7,57 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --mac --dir"
+    "dist": "electron-builder --mac",
+    "dist:unsigned": "CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac -c.mac.identity=null -c.mac.notarize=false"
   },
   "build": {
-    "appId": "local.skillboard",
+    "appId": "io.github.wsn880220.skillboard",
     "productName": "Skill Board",
-    "mac": {
-      "target": "dir",
-      "category": "public.app-category.developer-tools",
-      "identity": null
-    },
     "files": [
       "main.js",
       "preload.js",
       "src/**",
       "renderer/**",
       "package.json"
-    ]
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "darkModeSupport": true,
+      "notarize": true
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "contents": [
+        {
+          "x": 150,
+          "y": 190
+        },
+        {
+          "x": 390,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    }
   },
   "dependencies": {
     "js-yaml": "^5.5.0",
